@@ -1,51 +1,63 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const mysql = require('mysql2/promise');
 
-const dbPath = path.resolve(__dirname, 'database.sqlite');
-const db = new sqlite3.Database(dbPath);
+// Criação do Pool de conexões do MySQL
+// Ele pegará a URL da nuvem da variável de ambiente, ou usará um localhost genérico para testes locais se tiver MySQL rodando
+const pool = mysql.createPool({
+  uri: process.env.DATABASE_URL || 'mysql://root:root@localhost:3306/alpha_outlet',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
-db.serialize(() => {
-  // Tabela de Produtos
-  db.run(`CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    price REAL NOT NULL,
-    category TEXT,
-    image TEXT,
-    description TEXT,
-    colors TEXT,
-    sizes TEXT
-  )`);
+async function initializeDB() {
+  try {
+    const connection = await pool.getConnection();
+    
+    // Tabela de Produtos
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS products (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        price DECIMAL(10,2) NOT NULL,
+        category VARCHAR(100),
+        image TEXT,
+        description TEXT,
+        colors JSON,
+        sizes JSON
+      )
+    `);
 
-  // Tabela de Pedidos
-  db.run(`CREATE TABLE IF NOT EXISTS orders (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_id INTEGER,
-    customer_name TEXT NOT NULL,
-    customer_email TEXT NOT NULL,
-    customer_address TEXT NOT NULL,
-    payment_method TEXT NOT NULL,
-    items TEXT NOT NULL,
-    total REAL NOT NULL,
-    status TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
+    // Tabela de Pedidos
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        customer_id INT NULL,
+        customer_name VARCHAR(255) NOT NULL,
+        customer_email VARCHAR(255) NOT NULL,
+        customer_address TEXT NOT NULL,
+        payment_method VARCHAR(50) NOT NULL,
+        items JSON NOT NULL,
+        total DECIMAL(10,2) NOT NULL,
+        status VARCHAR(50) NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
-  // Tabela de Clientes
-  db.run(`CREATE TABLE IF NOT EXISTS customers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    address TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
+    // Tabela de Clientes
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS customers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        address TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
-  // Inserir dados iniciais se a tabela estiver vazia
-  db.get("SELECT COUNT(*) AS count FROM products", (err, row) => {
-    if (row.count === 0) {
-      const stmt = db.prepare("INSERT INTO products (name, price, category, image, description, colors, sizes) VALUES (?, ?, ?, ?, ?, ?, ?)");
-      
+    // Inserir dados iniciais se a tabela de produtos estiver vazia
+    const [rows] = await connection.execute("SELECT COUNT(*) AS count FROM products");
+    if (rows[0].count === 0) {
       const initialProducts = [
         {
           name: "Jaqueta de Couro Rústica",
@@ -76,13 +88,22 @@ db.serialize(() => {
         }
       ];
 
-      initialProducts.forEach(p => {
-        stmt.run(p.name, p.price, p.category, p.image, p.description, p.colors, p.sizes);
-      });
-      stmt.finalize();
-      console.log("Banco de dados populado com sucesso.");
+      for (const p of initialProducts) {
+        await connection.execute(
+          "INSERT INTO products (name, price, category, image, description, colors, sizes) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          [p.name, p.price, p.category, p.image, p.description, p.colors, p.sizes]
+        );
+      }
+      console.log("Banco de dados MySQL populado com sucesso.");
     }
-  });
-});
+    
+    connection.release();
+    console.log("Conectado ao MySQL com sucesso!");
+  } catch (error) {
+    console.error("Erro ao inicializar o banco de dados:", error);
+  }
+}
 
-module.exports = db;
+initializeDB();
+
+module.exports = pool;

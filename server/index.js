@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const db = require('./db');
+const pool = require('./db');
 const multer = require('multer');
 const path = require('path');
 
@@ -20,147 +20,150 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
-app.use(express.json());
 
 const PORT = 3001;
 
 // Rotas de Produtos
-app.get('/api/products', (req, res) => {
-  db.all("SELECT * FROM products", [], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    // Parse arrays
+app.get('/api/products', async (req, res) => {
+  try {
+    const [rows] = await pool.execute("SELECT * FROM products");
+    // Parse JSON
     const products = rows.map(r => ({
       ...r,
-      colors: JSON.parse(r.colors),
-      sizes: JSON.parse(r.sizes)
+      colors: typeof r.colors === 'string' ? JSON.parse(r.colors) : r.colors,
+      sizes: typeof r.sizes === 'string' ? JSON.parse(r.sizes) : r.sizes
     }));
     res.json(products);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.get('/api/products/:id', (req, res) => {
-  db.get("SELECT * FROM products WHERE id = ?", [req.params.id], (err, row) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.execute("SELECT * FROM products WHERE id = ?", [req.params.id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Produto não encontrado" });
     }
-    if (!row) {
-      res.status(404).json({ error: "Produto não encontrado" });
-      return;
-    }
+    const row = rows[0];
     res.json({
       ...row,
-      colors: JSON.parse(row.colors),
-      sizes: JSON.parse(row.sizes)
+      colors: typeof row.colors === 'string' ? JSON.parse(row.colors) : row.colors,
+      sizes: typeof row.sizes === 'string' ? JSON.parse(row.sizes) : row.sizes
     });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.post('/api/products', upload.single('image'), (req, res) => {
-  const { name, price, category, description, colors, sizes } = req.body;
-  
-  // Se houver arquivo, usa a URL do arquivo. Se não, tenta usar a string passada no form (ou vazio)
-  const imageUrl = req.file ? `http://localhost:3001/uploads/${req.file.filename}` : (req.body.imageUrl || '');
-  
-  const parsedColors = colors ? JSON.stringify(colors.split(',').map(c => c.trim())) : '[]';
-  const parsedSizes = sizes ? JSON.stringify(sizes.split(',').map(s => s.trim())) : '[]';
+app.post('/api/products', upload.single('image'), async (req, res) => {
+  try {
+    const { name, price, category, description, colors, sizes } = req.body;
+    
+    const imageUrl = req.file ? `http://localhost:3001/uploads/${req.file.filename}` : (req.body.imageUrl || '');
+    const parsedColors = colors ? JSON.stringify(colors.split(',').map(c => c.trim())) : '[]';
+    const parsedSizes = sizes ? JSON.stringify(sizes.split(',').map(s => s.trim())) : '[]';
 
-  const stmt = db.prepare("INSERT INTO products (name, price, category, image, description, colors, sizes) VALUES (?, ?, ?, ?, ?, ?, ?)");
-  stmt.run(name, parseFloat(price), category, imageUrl, description, parsedColors, parsedSizes, function(err) {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({ id: this.lastID, message: "Produto criado com sucesso" });
-  });
-  stmt.finalize();
+    const [result] = await pool.execute(
+      "INSERT INTO products (name, price, category, image, description, colors, sizes) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [name, parseFloat(price), category, imageUrl, description, parsedColors, parsedSizes]
+    );
+    res.json({ id: result.insertId, message: "Produto criado com sucesso" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.delete('/api/products/:id', (req, res) => {
-  db.run("DELETE FROM products WHERE id = ?", [req.params.id], function(err) {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({ message: "Produto deletado com sucesso", changes: this.changes });
-  });
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    const [result] = await pool.execute("DELETE FROM products WHERE id = ?", [req.params.id]);
+    res.json({ message: "Produto deletado com sucesso", affectedRows: result.affectedRows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Rotas de Pedidos (Vendas)
-app.get('/api/orders', (req, res) => {
-  db.all("SELECT * FROM orders ORDER BY created_at DESC", [], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
+app.get('/api/orders', async (req, res) => {
+  try {
+    const [rows] = await pool.execute("SELECT * FROM orders ORDER BY created_at DESC");
     const orders = rows.map(r => ({
       ...r,
-      items: JSON.parse(r.items)
+      items: typeof r.items === 'string' ? JSON.parse(r.items) : r.items
     }));
     res.json(orders);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.post('/api/orders', (req, res) => {
-  const { customer_id, customer_name, customer_email, customer_address, payment_method, items, total } = req.body;
-  
-  const stmt = db.prepare("INSERT INTO orders (customer_id, customer_name, customer_email, customer_address, payment_method, items, total, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-  stmt.run(customer_id || null, customer_name, customer_email, customer_address, payment_method, JSON.stringify(items), total, 'Pendente', function(err) {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({ id: this.lastID, message: "Pedido criado com sucesso" });
-  });
-  stmt.finalize();
+app.post('/api/orders', async (req, res) => {
+  try {
+    const { customer_id, customer_name, customer_email, customer_address, payment_method, items, total } = req.body;
+    const [result] = await pool.execute(
+      "INSERT INTO orders (customer_id, customer_name, customer_email, customer_address, payment_method, items, total, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [customer_id || null, customer_name, customer_email, customer_address, payment_method, JSON.stringify(items), total, 'Pendente']
+    );
+    res.json({ id: result.insertId, message: "Pedido criado com sucesso" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.put('/api/orders/:id/status', (req, res) => {
-  const { status } = req.body;
-  db.run("UPDATE orders SET status = ? WHERE id = ?", [status, req.params.id], function(err) {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({ message: "Status atualizado", changes: this.changes });
-  });
+app.put('/api/orders/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const [result] = await pool.execute("UPDATE orders SET status = ? WHERE id = ?", [status, req.params.id]);
+    res.json({ message: "Status atualizado", affectedRows: result.affectedRows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Rotas de Clientes (Auth & Perfil)
-app.post('/api/customers/register', (req, res) => {
-  const { name, email, password, address } = req.body;
-  db.run("INSERT INTO customers (name, email, password, address) VALUES (?, ?, ?, ?)", [name, email, password, address || ''], function(err) {
-    if (err) {
-      if (err.message.includes('UNIQUE')) {
-        return res.status(400).json({ success: false, message: "Email já cadastrado" });
-      }
-      return res.status(500).json({ success: false, error: err.message });
+app.post('/api/customers/register', async (req, res) => {
+  try {
+    const { name, email, password, address } = req.body;
+    const [result] = await pool.execute(
+      "INSERT INTO customers (name, email, password, address) VALUES (?, ?, ?, ?)",
+      [name, email, password, address || '']
+    );
+    res.json({ success: true, customer: { id: result.insertId, name, email, address } });
+  } catch (err) {
+    if (err.message.includes('Duplicate entry') || err.message.includes('UNIQUE')) {
+      return res.status(400).json({ success: false, message: "Email já cadastrado" });
     }
-    res.json({ success: true, customer: { id: this.lastID, name, email, address } });
-  });
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-app.post('/api/customers/login', (req, res) => {
-  const { email, password } = req.body;
-  db.get("SELECT id, name, email, address FROM customers WHERE email = ? AND password = ?", [email, password], (err, row) => {
-    if (err) return res.status(500).json({ success: false, error: err.message });
-    if (!row) return res.status(401).json({ success: false, message: "Email ou senha incorretos" });
-    res.json({ success: true, customer: row });
-  });
+app.post('/api/customers/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const [rows] = await pool.execute("SELECT id, name, email, address FROM customers WHERE email = ? AND password = ?", [email, password]);
+    if (rows.length === 0) {
+      return res.status(401).json({ success: false, message: "Email ou senha incorretos" });
+    }
+    res.json({ success: true, customer: rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-app.get('/api/customers/:id/orders', (req, res) => {
-  db.all("SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC", [req.params.id], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    const orders = rows.map(r => ({ ...r, items: JSON.parse(r.items) }));
+app.get('/api/customers/:id/orders', async (req, res) => {
+  try {
+    const [rows] = await pool.execute("SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC", [req.params.id]);
+    const orders = rows.map(r => ({ 
+      ...r, 
+      items: typeof r.items === 'string' ? JSON.parse(r.items) : r.items 
+    }));
     res.json(orders);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// Login Mock simples (hardcoded por enquanto)
+// Login Mock simples
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
   if (password === 'alphaadmin123') {
