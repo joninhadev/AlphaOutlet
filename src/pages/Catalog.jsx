@@ -6,7 +6,7 @@ export default function Catalog() {
   const [selectedCategory, setSelectedCategory] = useState('Todas');
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/products')
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products`)
       .then(res => res.json())
       .then(setProducts)
       .catch(console.error);

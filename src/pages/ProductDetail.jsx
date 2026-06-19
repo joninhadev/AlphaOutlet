@@ -14,7 +14,7 @@ export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState('');
 
   useEffect(() => {
-    fetch(`http://localhost:3001/api/products/${id}`)
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products/${id}`)
       .then(res => res.json())
       .then(data => {
         if (!data.error) {

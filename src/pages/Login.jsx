@@ -18,7 +18,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const url = isLogin ? 'http://localhost:3001/api/customers/login' : 'http://localhost:3001/api/customers/register';
+    const url = isLogin ? `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/customers/login` : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/customers/register`;
     
     const bodyData = isLogin 
       ? { email, password } 

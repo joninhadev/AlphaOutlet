@@ -13,7 +13,7 @@ export default function Account() {
       return;
     }
 
-    fetch(`http://localhost:3001/api/customers/${customer.id}/orders`)
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/customers/${customer.id}/orders`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setOrders(data);

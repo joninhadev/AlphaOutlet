@@ -7,7 +7,7 @@ export default function Home() {
   const [destaques, setDestaques] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/products')
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products`)
       .then(res => res.json())
       .then(data => setDestaques(data.slice(0, 3)))
       .catch(console.error);

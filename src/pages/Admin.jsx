@@ -22,14 +22,14 @@ export default function Admin() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/products');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products`);
       setProducts(await res.json());
     } catch (e) { console.error(e); }
   };
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/orders');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/orders`);
       setOrders(await res.json());
     } catch (e) { console.error(e); }
   };
@@ -44,7 +44,7 @@ export default function Admin() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:3001/api/admin/login', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
@@ -67,7 +67,7 @@ export default function Admin() {
     if (imageFile) formData.append('image', imageFile);
 
     try {
-      await fetch('http://localhost:3001/api/products', { method: 'POST', body: formData });
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products`, { method: 'POST', body: formData });
       alert('Produto cadastrado!');
       setName(''); setPrice(''); setCategory(''); setImageFile(null); setDescription(''); setColors(''); setSizes('');
       fetchProducts();
@@ -77,7 +77,7 @@ export default function Admin() {
   const handleDeleteProduct = async (id) => {
     if (window.confirm('Excluir este produto?')) {
       try {
-        await fetch(`http://localhost:3001/api/products/${id}`, { method: 'DELETE' });
+        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products/${id}`, { method: 'DELETE' });
         fetchProducts();
       } catch (e) { alert('Erro ao deletar'); }
     }
@@ -85,7 +85,7 @@ export default function Admin() {
 
   const handleUpdateOrderStatus = async (id, newStatus) => {
     try {
-      await fetch(`http://localhost:3001/api/orders/${id}/status`, {
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/orders/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
