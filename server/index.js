@@ -69,7 +69,8 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
   try {
     const { name, price, category, description, colors, sizes } = req.body;
     
-    const imageUrl = req.file ? `http://localhost:3001/uploads/${req.file.filename}` : (req.body.imageUrl || '');
+    const serverUrl = process.env.RENDER_EXTERNAL_URL || process.env.VITE_API_URL || `http://localhost:${PORT}`;
+    const imageUrl = req.file ? `${serverUrl}/uploads/${req.file.filename}` : (req.body.imageUrl || '');
     const parsedColors = colors ? JSON.stringify(colors.split(',').map(c => c.trim())) : '[]';
     const parsedSizes = sizes ? JSON.stringify(sizes.split(',').map(s => s.trim())) : '[]';
 
