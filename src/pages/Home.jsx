@@ -58,7 +58,7 @@ export default function Home() {
           </Link>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
+        <div className="grid-responsive grid-responsive-3">
           {destaques.map(product => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -68,7 +68,7 @@ export default function Home() {
       {/* Categoria Banner */}
       <section style={{ backgroundColor: 'var(--color-surface)', padding: '5rem 0' }}>
         <div className="container">
-          <div className="glass-panel" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', borderRadius: '12px', overflow: 'hidden' }}>
+          <div className="glass-panel grid-responsive grid-responsive-2" style={{ borderRadius: '12px', overflow: 'hidden', gap: 0 }}>
             <div style={{ padding: '4rem 3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Coleção Couro Premium</h2>
               <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
@@ -78,8 +78,8 @@ export default function Home() {
                 Explorar Linha
               </Link>
             </div>
-            <div style={{ height: '400px' }}>
-              <img src="https://images.unsplash.com/photo-1489987707023-af66f1e8e4db?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Coleção Couro" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div style={{ height: '100%', minHeight: '300px' }}>
+              <img src="https://images.unsplash.com/photo-1489987707023-af66f1e8e4db?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Coleção Couro" style={{ width: '100%', height: '100%', minHeight: '300px', objectFit: 'cover' }} />
             </div>
           </div>
         </div>

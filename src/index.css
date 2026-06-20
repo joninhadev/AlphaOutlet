@@ -91,7 +91,53 @@ input, select, textarea {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 1.5rem; /* Ajustado para celular */
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 0 2rem;
+  }
+}
+
+/* Grids Responsivos */
+.grid-responsive {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .grid-responsive-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid-responsive-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .grid-responsive-admin {
+    grid-template-columns: 1fr 2fr;
+  }
+}
+
+.responsive-padding {
+  padding: 3rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .responsive-padding {
+    padding: 5rem 2rem;
+  }
+}
+
+/* Ajustes de Imagem responsiva */
+.product-image-container {
+  height: 400px;
+}
+
+@media (min-width: 768px) {
+  .product-image-container {
+    height: 600px;
+  }
 }
 
 .btn-primary {

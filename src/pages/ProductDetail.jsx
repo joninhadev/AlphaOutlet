@@ -47,14 +47,14 @@ export default function ProductDetail() {
   }
 
   return (
-    <div className="container animate-fade-in" style={{ padding: '4rem 2rem' }}>
+    <div className="container animate-fade-in responsive-padding">
       <Link to="/catalogo" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem', color: 'var(--color-text-muted)' }}>
         <ArrowLeft size={20} /> Voltar
       </Link>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '4rem' }}>
-        {/* Image Gallery (Placeholder for one image) */}
-        <div style={{ borderRadius: '12px', overflow: 'hidden', height: '600px' }}>
+      <div className="grid-responsive grid-responsive-2">
+        {/* Image Gallery */}
+        <div className="product-image-container" style={{ borderRadius: '12px', overflow: 'hidden' }}>
           <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
 

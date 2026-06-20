@@ -65,7 +65,7 @@ export default function Catalog() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '3rem' }}>
+      <div className="grid-responsive grid-responsive-3">
         {filteredProducts.map(product => (
           <ProductCard key={product.id} product={product} />
         ))}

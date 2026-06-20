@@ -106,7 +106,7 @@ export default function Checkout() {
   }
 
   return (
-    <div className="container animate-fade-in" style={{ padding: '4rem 2rem' }}>
+    <div className="container animate-fade-in responsive-padding">
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Finalizar Compra</h1>
       
       {!customer && (
@@ -121,7 +121,7 @@ export default function Checkout() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem' }}>
+      <div className="grid-responsive grid-responsive-2">
         {/* Formulário */}
         <div>
           <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>Dados do Pedido</h3>

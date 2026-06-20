@@ -116,8 +116,8 @@ export default function Admin() {
   }
 
   return (
-    <div className="container animate-fade-in" style={{ padding: '4rem 2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+    <div className="container animate-fade-in responsive-padding">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <h1>Painel de Administração</h1>
         
         <div style={{ display: 'flex', gap: '1rem', backgroundColor: 'var(--color-surface)', padding: '0.5rem', borderRadius: '8px' }}>
@@ -135,7 +135,7 @@ export default function Admin() {
       </div>
       
       {activeTab === 'catalog' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '3rem' }}>
+        <div className="grid-responsive grid-responsive-admin">
           <div className="glass-panel" style={{ padding: '2rem', borderRadius: '8px', alignSelf: 'start' }}>
             <h3 style={{ marginBottom: '1.5rem' }}>Adicionar Novo Produto</h3>
             <form onSubmit={handleAddProduct} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -212,7 +212,7 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
+                  <div className="grid-responsive grid-responsive-2">
                     <div>
                       <h5 style={{ color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Cliente</h5>
                       <p style={{ margin: 0 }}><strong>{order.customer_name}</strong></p>
