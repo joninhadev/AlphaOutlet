@@ -64,8 +64,10 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
     }
     
     const parsedColors = colors ? JSON.stringify(colors.split(',').map(c => {
-      const trimmed = c.trim();
-      return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+      return c.trim().split(/\s+/).map(word => {
+        if (!word) return '';
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      }).join(' ');
     })) : '[]';
     
     const parsedSizes = sizes ? JSON.stringify(sizes.split(',').map(s => s.trim().toUpperCase())) : '[]';
