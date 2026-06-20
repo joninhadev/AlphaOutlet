@@ -23,14 +23,16 @@ export default function Admin() {
   const fetchProducts = async () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products`);
-      setProducts(await res.json());
+      const data = await res.json();
+      setProducts(Array.isArray(data) ? data : []);
     } catch (e) { console.error(e); }
   };
 
   const fetchOrders = async () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/orders`);
-      setOrders(await res.json());
+      const data = await res.json();
+      setOrders(Array.isArray(data) ? data : []);
     } catch (e) { console.error(e); }
   };
 

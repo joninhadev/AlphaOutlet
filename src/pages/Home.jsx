@@ -9,7 +9,14 @@ export default function Home() {
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products`)
       .then(res => res.json())
-      .then(data => setDestaques(data.slice(0, 3)))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setDestaques(data.slice(0, 3));
+        } else {
+          setDestaques([]);
+          console.error("Backend error:", data);
+        }
+      })
       .catch(console.error);
   }, []);
 

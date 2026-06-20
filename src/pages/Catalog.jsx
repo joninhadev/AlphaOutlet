@@ -8,7 +8,10 @@ export default function Catalog() {
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products`)
       .then(res => res.json())
-      .then(setProducts)
+      .then(data => {
+        if (Array.isArray(data)) setProducts(data);
+        else setProducts([]);
+      })
       .catch(console.error);
   }, []);
 
