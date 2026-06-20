@@ -217,7 +217,13 @@ export default function Admin() {
                       <h5 style={{ color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Cliente</h5>
                       <p style={{ margin: 0 }}><strong>{order.customer_name}</strong></p>
                       <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>{order.customer_email}</p>
-                      <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem' }}>{order.customer_address}</p>
+                      {order.customer_address === 'Retirada na Loja' ? (
+                        <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: '#ffb300', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          📍 Retirada na Loja
+                        </p>
+                      ) : (
+                        <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem' }}>🚚 {order.customer_address}</p>
+                      )}
                       
                       <h5 style={{ color: 'var(--color-primary)', margin: '1rem 0 0.5rem 0' }}>Pagamento</h5>
                       <p style={{ margin: 0, fontWeight: 600 }}>{order.payment_method}</p>

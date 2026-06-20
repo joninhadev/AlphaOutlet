@@ -16,6 +16,7 @@ export default function Checkout() {
   const [customerEmail, setCustomerEmail] = useState(customer ? customer.email : '');
   const [customerAddress, setCustomerAddress] = useState(customer ? customer.address : '');
   const [paymentMethod, setPaymentMethod] = useState('Pix');
+  const [deliveryMethod, setDeliveryMethod] = useState('Entrega');
 
   useEffect(() => {
     if (customer) {
@@ -33,7 +34,7 @@ export default function Checkout() {
       customer_id: customer ? customer.id : null,
       customer_name: customerName,
       customer_email: customerEmail,
-      customer_address: customerAddress,
+      customer_address: deliveryMethod === 'Retirada' ? 'Retirada na Loja' : customerAddress,
       payment_method: paymentMethod,
       items: cart,
       total: total
@@ -61,6 +62,13 @@ export default function Checkout() {
         <p style={{ fontSize: '1.2rem', color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
           Obrigado por comprar na Alpha Outlet. Seu pedido foi registrado com sucesso.
         </p>
+
+        {deliveryMethod === 'Retirada' && (
+          <div className="glass-panel" style={{ padding: '2rem', borderRadius: '8px', marginBottom: '2rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--color-primary)' }}>
+            <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>📍 Pedido para Retirada</h3>
+            <p>Seu pedido está sendo separado. Avisaremos por e-mail ou WhatsApp assim que estiver pronto para ser retirado na nossa loja física.</p>
+          </div>
+        )}
         
         {paymentMethod === 'Pix' && (
           <div className="glass-panel" style={{ padding: '2rem', borderRadius: '8px', marginBottom: '2rem', textAlign: 'center' }}>
@@ -116,11 +124,30 @@ export default function Checkout() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem' }}>
         {/* Formulário */}
         <div>
-          <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>Dados de Entrega e Pagamento</h3>
+          <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>Dados do Pedido</h3>
           <form onSubmit={handleCheckout} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <input required type="text" placeholder="Nome Completo" value={customerName} onChange={e => setCustomerName(e.target.value)} className="input-field" />
             <input required type="email" placeholder="Email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} className="input-field" />
-            <input required type="text" placeholder="Endereço Completo de Entrega" value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} className="input-field" />
+            
+            <h4 style={{ marginTop: '1rem' }}>Método de Entrega</h4>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '1rem', border: `1px solid ${deliveryMethod === 'Entrega' ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: '6px', flex: 1, backgroundColor: 'var(--color-surface)' }}>
+                <input type="radio" name="delivery" value="Entrega" checked={deliveryMethod === 'Entrega'} onChange={e => setDeliveryMethod(e.target.value)} />
+                Receber em Casa
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '1rem', border: `1px solid ${deliveryMethod === 'Retirada' ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: '6px', flex: 1, backgroundColor: 'var(--color-surface)' }}>
+                <input type="radio" name="delivery" value="Retirada" checked={deliveryMethod === 'Retirada'} onChange={e => setDeliveryMethod(e.target.value)} />
+                Retirar na Loja
+              </label>
+            </div>
+
+            {deliveryMethod === 'Entrega' ? (
+              <input required type="text" placeholder="Endereço Completo de Entrega" value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} className="input-field" style={{ marginTop: '0.5rem' }} />
+            ) : (
+              <div style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '6px', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                <strong>📍 Retirada Presencial:</strong> Você não pagará frete. O endereço da nossa loja será enviado no comprovante do pedido.
+              </div>
+            )}
             
             <h4 style={{ marginTop: '1rem' }}>Método de Pagamento</h4>
             <div style={{ display: 'flex', gap: '1rem' }}>

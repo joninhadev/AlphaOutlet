@@ -173,6 +173,16 @@ app.post('/api/admin/login', (req, res) => {
   }
 });
 
+// Rota de Health Check (Monitoramento)
+app.get('/api/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.status(200).json({ status: 'OK', database: 'connected' });
+  } catch (error) {
+    res.status(500).json({ status: 'ERROR', database: 'disconnected', details: error.message });
+  }
+});
+
 app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });

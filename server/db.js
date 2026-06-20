@@ -6,7 +6,10 @@ const pool = mysql.createPool({
   uri: process.env.DATABASE_URL || 'mysql://root:root@localhost:3306/alpha_outlet',
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000,
+  connectTimeout: 20000 // 20 segundos para evitar travamento em falhas de rede
 });
 
 async function initializeDB() {
