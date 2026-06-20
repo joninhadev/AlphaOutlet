@@ -17,7 +17,7 @@ export default function ProductDetail() {
     fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products/${id}`)
       .then(res => res.json())
       .then(data => {
-        if (!data.error) {
+        if (data && data.id && Array.isArray(data.sizes) && Array.isArray(data.colors)) {
           setProduct(data);
           setSelectedSize(data.sizes[0]);
           setSelectedColor(data.colors[0]);
