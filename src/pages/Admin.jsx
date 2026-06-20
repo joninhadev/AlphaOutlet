@@ -71,8 +71,14 @@ export default function Admin() {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products`, { method: 'POST', body: formData });
       if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Erro do servidor');
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const errData = await res.json();
+          throw new Error(errData.error || errData.message || 'Erro do servidor');
+        } else {
+          const errText = await res.text();
+          throw new Error(`Erro ${res.status}: Servidor indisponível ou configurado incorretamente. Veja a aba Network.`);
+        }
       }
       alert('Produto cadastrado!');
       setName(''); setPrice(''); setCategory(''); setImageFile(null); setDescription(''); setColors(''); setSizes('');
