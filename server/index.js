@@ -11,22 +11,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const fs = require('fs');
 
-// Garante que a pasta uploads existe no servidor
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Config Multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir)
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, uniqueSuffix + path.extname(file.originalname))
-  }
-});
+// Config Multer para salvar em memória (Base64) e evitar que a Render apague os arquivos ao reiniciar
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 const PORT = 3001;
@@ -69,8 +55,14 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
   try {
     const { name, price, category, description, colors, sizes } = req.body;
     
-    const serverUrl = process.env.RENDER_EXTERNAL_URL || process.env.VITE_API_URL || `http://localhost:${PORT}`;
-    const imageUrl = req.file ? `${serverUrl}/uploads/${req.file.filename}` : (req.body.imageUrl || '');
+    // Converter arquivo da memória para Base64
+    let imageUrl = req.body.imageUrl || '';
+    if (req.file) {
+      const b64 = req.file.buffer.toString('base64');
+      const mime = req.file.mimetype;
+      imageUrl = `data:${mime};base64,${b64}`;
+    }
+    
     const parsedColors = colors ? JSON.stringify(colors.split(',').map(c => c.trim())) : '[]';
     const parsedSizes = sizes ? JSON.stringify(sizes.split(',').map(s => s.trim())) : '[]';
 
