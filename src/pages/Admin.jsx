@@ -22,6 +22,7 @@ export default function Admin() {
   const [colors, setColors] = useState('');
   const [sizes, setSizes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingProductId, setEditingProductId] = useState(null);
 
   // Redireciona caso não seja admin
   useEffect(() => {
@@ -53,7 +54,7 @@ export default function Admin() {
     }
   }, [customer]);
 
-  const handleAddProduct = async (e) => {
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
     if (isSubmitting) return; // Proteção extra
     setIsSubmitting(true);
@@ -68,7 +69,11 @@ export default function Admin() {
     if (imageFile) formData.append('image', imageFile);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products`, { method: 'POST', body: formData });
+      const url = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products${editingProductId ? '/' + editingProductId : ''}`;
+      const method = editingProductId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, { method: method, body: formData });
+      
       if (!res.ok) {
         const contentType = res.headers.get("content-type");
         if (contentType && contentType.indexOf("application/json") !== -1) {
@@ -79,8 +84,11 @@ export default function Admin() {
           throw new Error(`Erro ${res.status}: Servidor indisponível ou configurado incorretamente. Veja a aba Network.`);
         }
       }
-      alert('Produto cadastrado!');
+      alert(editingProductId ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
+      
+      // Limpar form
       setName(''); setPrice(''); setCategory(''); setImageFile(null); setDescription(''); setColors(''); setSizes('');
+      setEditingProductId(null);
       fetchProducts();
     } catch (e) { 
       console.error(e);
@@ -88,6 +96,23 @@ export default function Admin() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleEditProduct = (product) => {
+    setName(product.name);
+    setPrice(product.price);
+    setCategory(product.category);
+    setDescription(product.description);
+    setColors(Array.isArray(product.colors) ? product.colors.join(', ') : '');
+    setSizes(Array.isArray(product.sizes) ? product.sizes.join(', ') : '');
+    setEditingProductId(product.id);
+    setImageFile(null); // Limpar arquivo caso haja algum
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    setName(''); setPrice(''); setCategory(''); setImageFile(null); setDescription(''); setColors(''); setSizes('');
+    setEditingProductId(null);
   };
 
   const handleDeleteProduct = async (id) => {
@@ -140,19 +165,27 @@ export default function Admin() {
       {activeTab === 'catalog' && (
         <div className="grid-responsive grid-responsive-admin">
           <div className="glass-panel" style={{ padding: '2rem', borderRadius: '8px', alignSelf: 'start' }}>
-            <h3 style={{ marginBottom: '1.5rem' }}>Adicionar Novo Produto</h3>
-            <form onSubmit={handleAddProduct} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <h3 style={{ marginBottom: '1.5rem' }}>{editingProductId ? 'Atualizar Produto' : 'Adicionar Novo Produto'}</h3>
+            <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <input required type="text" placeholder="Nome do Produto" value={name} onChange={e => setName(e.target.value)} className="admin-input" />
-              <input required type="number" step="0.01" placeholder="Preço" value={price} onChange={e => setPrice(e.target.value)} className="admin-input" />
+              <input required type="number" step="0.01" placeholder="Preço (Ex: 99.90)" value={price} onChange={e => setPrice(e.target.value)} className="admin-input" />
               <input required type="text" placeholder="Categoria" value={category} onChange={e => setCategory(e.target.value)} className="admin-input" />
-              <label style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Imagem do Produto:</label>
-              <input required type="file" accept="image/*" onChange={e => setImageFile(e.target.files[0])} className="admin-input" style={{ padding: '0.5rem' }} />
               <textarea required placeholder="Descrição" value={description} onChange={e => setDescription(e.target.value)} className="admin-input" rows="3" />
               <input required type="text" placeholder="Cores (vírgula)" value={colors} onChange={e => setColors(e.target.value)} className="admin-input" />
               <input required type="text" placeholder="Tamanhos (vírgula)" value={sizes} onChange={e => setSizes(e.target.value)} className="admin-input" />
-              <button className="btn-primary" type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Salvando...' : 'Salvar Produto'}
-              </button>
+              <input type={editingProductId ? "file" : "file"} required={!editingProductId} accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} className="admin-input" />
+              {editingProductId && <small style={{color:'var(--color-text-muted)'}}>Deixe em branco para manter a imagem atual.</small>}
+              
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button className="btn-primary" type="submit" disabled={isSubmitting} style={{ flex: 1 }}>
+                  {isSubmitting ? 'Salvando...' : editingProductId ? 'Atualizar Produto' : 'Salvar Produto'}
+                </button>
+                {editingProductId && (
+                  <button type="button" onClick={cancelEdit} style={{ padding: '0.8rem', backgroundColor: 'var(--color-surface)', color: 'white', border: '1px solid var(--color-border)', borderRadius: '6px', cursor: 'pointer' }}>
+                    Cancelar
+                  </button>
+                )}
+              </div>
             </form>
           </div>
 
@@ -168,7 +201,14 @@ export default function Admin() {
                       <p style={{ margin: 0, color: 'var(--color-primary)', fontWeight: 'bold' }}>R$ {p.price.toFixed(2)}</p>
                     </div>
                   </div>
-                  <button onClick={() => handleDeleteProduct(p.id)} style={{ color: 'var(--color-error)', border: '1px solid var(--color-error)', padding: '0.5rem 1rem', borderRadius: '4px' }}>Excluir</button>
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button onClick={() => handleEditProduct(p)} style={{ padding: '0.5rem 1rem', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                      Editar
+                    </button>
+                    <button onClick={() => handleDeleteProduct(p.id)} style={{ padding: '0.5rem 1rem', backgroundColor: 'rgba(255, 50, 50, 0.2)', color: '#ff6b6b', border: '1px solid #ff6b6b', borderRadius: '4px', cursor: 'pointer' }}>
+                      Excluir
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

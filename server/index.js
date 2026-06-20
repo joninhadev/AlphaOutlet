@@ -82,6 +82,50 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
   }
 });
 
+app.put('/api/products/:id', upload.single('image'), async (req, res) => {
+  try {
+    const { name, price, category, description, colors, sizes } = req.body;
+    const productId = req.params.id;
+
+    let imageUpdateSql = '';
+    let queryParams = [name, parseFloat(price), category, description];
+
+    const parsedColors = colors ? JSON.stringify(colors.split(',').map(c => {
+      return c.trim().split(/\\s+/).map(word => {
+        if (!word) return '';
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      }).join(' ');
+    })) : '[]';
+    
+    const parsedSizes = sizes ? JSON.stringify(sizes.split(',').map(s => s.trim().toUpperCase())) : '[]';
+
+    queryParams.push(parsedColors, parsedSizes);
+
+    // Se vier uma nova imagem em formato de arquivo
+    if (req.file) {
+      const b64 = req.file.buffer.toString('base64');
+      const mime = req.file.mimetype;
+      const imageUrl = `data:${mime};base64,${b64}`;
+      imageUpdateSql = ', image = ?';
+      queryParams.push(imageUrl);
+    } else if (req.body.imageUrl) {
+      // Se vier uma url (caso não implementado no admin, mas suportado)
+      imageUpdateSql = ', image = ?';
+      queryParams.push(req.body.imageUrl);
+    }
+
+    queryParams.push(productId);
+
+    const [result] = await pool.execute(
+      `UPDATE products SET name = ?, price = ?, category = ?, description = ?, colors = ?, sizes = ?${imageUpdateSql} WHERE id = ?`,
+      queryParams
+    );
+    res.json({ message: "Produto atualizado com sucesso", affectedRows: result.affectedRows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.delete('/api/products/:id', async (req, res) => {
   try {
     const [result] = await pool.execute("DELETE FROM products WHERE id = ?", [req.params.id]);
