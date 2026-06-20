@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { ShoppingBag, Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import logoImg from './assets/logo_loja.png';
 
 // Paginas Placeholder
 import Home from './pages/Home';
@@ -24,8 +25,8 @@ function Navbar() {
   return (
     <header className="glass-panel" style={{ position: 'fixed', top: 0, width: '100%', zIndex: 50, borderTop: 'none', borderLeft: 'none', borderRight: 'none' }}>
       <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '80px' }}>
-        <Link to="/" style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', fontWeight: 700, letterSpacing: '2px' }}>
-          ALPHA<span style={{ color: 'var(--color-primary)' }}>OUTLET</span>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
+          <img src={logoImg} alt="Alpha Outlet Logo" style={{ height: '40px', objectFit: 'contain' }} />
         </Link>
 
         {/* Desktop Nav */}
@@ -84,7 +85,7 @@ function Footer() {
     <footer style={{ borderTop: '1px solid var(--color-border)', padding: '4rem 0 2rem 0', marginTop: 'auto' }}>
       <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
         <div>
-          <h3 style={{ marginBottom: '1rem', letterSpacing: '1px' }}>ALPHA OUTLET</h3>
+          <img src={logoImg} alt="Alpha Outlet Logo" style={{ height: '40px', objectFit: 'contain', marginBottom: '1rem', filter: 'grayscale(100%) opacity(0.8)' }} />
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
             Elevando seu estilo com peças exclusivas. Onde a moda encontra a autenticidade rústica.
           </p>
