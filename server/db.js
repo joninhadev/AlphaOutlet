@@ -1,19 +1,33 @@
 const mysql = require('mysql2/promise');
 
-// Criação do Pool de conexões do MySQL
-// Ele pegará a URL da nuvem da variável de ambiente, ou usará um localhost genérico para testes locais se tiver MySQL rodando
+// O usuário pode ter configurado o banco de dados como "sys" no TiDB, que é read-only.
+// Precisamos criar o banco alpha_outlet no "sys" (usando uma conexão temporária),
+// e então criar o pool principal apontando diretamente para o "alpha_outlet".
+const dbUrl = process.env.DATABASE_URL || 'mysql://root:root@localhost:3306/sys';
+const appDbUrl = dbUrl.replace('/sys', '/alpha_outlet');
+
+// Pool temporário apenas para criar o banco de dados
+const initPool = mysql.createPool({ uri: dbUrl });
+
+// Pool oficial da aplicação
 const pool = mysql.createPool({
-  uri: process.env.DATABASE_URL || 'mysql://root:root@localhost:3306/alpha_outlet',
+  uri: appDbUrl,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInitialDelay: 10000,
-  connectTimeout: 20000 // 20 segundos para evitar travamento em falhas de rede
+  connectTimeout: 20000
 });
 
 async function initializeDB() {
   try {
+    // 1. Criar o banco se não existir usando a url original
+    const initConn = await initPool.getConnection();
+    await initConn.query('CREATE DATABASE IF NOT EXISTS alpha_outlet');
+    initConn.release();
+
+    // 2. Agora o pool oficial pode conectar
     const connection = await pool.getConnection();
     
     // Tabela de Produtos
@@ -101,7 +115,7 @@ async function initializeDB() {
     }
     
     connection.release();
-    console.log("Conectado ao MySQL com sucesso!");
+    console.log("Conectado ao MySQL com sucesso e banco alpha_outlet preparado!");
   } catch (error) {
     console.error("Erro ao inicializar o banco de dados:", error);
   }

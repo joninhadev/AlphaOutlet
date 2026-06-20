@@ -69,11 +69,18 @@ export default function Admin() {
     if (imageFile) formData.append('image', imageFile);
 
     try {
-      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products`, { method: 'POST', body: formData });
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/products`, { method: 'POST', body: formData });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Erro do servidor');
+      }
       alert('Produto cadastrado!');
       setName(''); setPrice(''); setCategory(''); setImageFile(null); setDescription(''); setColors(''); setSizes('');
       fetchProducts();
-    } catch (e) { alert('Erro ao salvar produto'); }
+    } catch (e) { 
+      console.error(e);
+      alert('Erro ao salvar produto: ' + e.message); 
+    }
   };
 
   const handleDeleteProduct = async (id) => {
