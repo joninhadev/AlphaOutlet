@@ -135,11 +135,16 @@ app.put('/api/orders/:id/status', async (req, res) => {
 app.post('/api/customers/register', async (req, res) => {
   try {
     const { name, email, password, address } = req.body;
+    
+    // Se for o primeiro usuário da loja, ele vira admin automaticamente pelo DB (ver db.js), mas por segurança:
+    const [countRows] = await pool.execute("SELECT COUNT(*) as count FROM customers");
+    const isFirstUser = countRows[0].count === 0;
+
     const [result] = await pool.execute(
-      "INSERT INTO customers (name, email, password, address) VALUES (?, ?, ?, ?)",
-      [name, email, password, address || '']
+      "INSERT INTO customers (name, email, password, address, is_admin) VALUES (?, ?, ?, ?, ?)",
+      [name, email, password, address || '', isFirstUser ? true : false]
     );
-    res.json({ success: true, customer: { id: result.insertId, name, email, address } });
+    res.json({ success: true, customer: { id: result.insertId, name, email, address, is_admin: isFirstUser } });
   } catch (err) {
     if (err.message.includes('Duplicate entry') || err.message.includes('UNIQUE')) {
       return res.status(400).json({ success: false, message: "Email já cadastrado" });
@@ -151,11 +156,14 @@ app.post('/api/customers/register', async (req, res) => {
 app.post('/api/customers/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const [rows] = await pool.execute("SELECT id, name, email, address FROM customers WHERE email = ? AND password = ?", [email, password]);
+    const [rows] = await pool.execute("SELECT id, name, email, address, is_admin FROM customers WHERE email = ? AND password = ?", [email, password]);
     if (rows.length === 0) {
       return res.status(401).json({ success: false, message: "Email ou senha incorretos" });
     }
-    res.json({ success: true, customer: rows[0] });
+    const customer = rows[0];
+    // Garantir que is_admin seja booleano
+    customer.is_admin = !!customer.is_admin;
+    res.json({ success: true, customer });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

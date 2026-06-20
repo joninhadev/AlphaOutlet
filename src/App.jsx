@@ -44,6 +44,12 @@ function Navbar() {
               {customer ? `Olá, ${customer?.name?.split(' ')[0] || 'Cliente'}` : 'Entrar'}
             </span>
           </Link>
+          
+          {customer?.is_admin && (
+            <Link to="/admin" className="desktop-nav" style={{ backgroundColor: 'var(--color-primary)', color: 'white', padding: '0.4rem 0.8rem', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold' }}>
+              Painel Admin
+            </Link>
+          )}
           <Link to="/checkout" style={{ color: 'var(--color-text-main)', position: 'relative' }}>
             <ShoppingBag size={24} />
             {cartCount > 0 && (
@@ -65,6 +71,9 @@ function Navbar() {
             <li><Link to="/" onClick={() => setIsOpen(false)}>Início</Link></li>
             <li><Link to="/catalogo" onClick={() => setIsOpen(false)}>Catálogo</Link></li>
             <li><Link to="/contato" onClick={() => setIsOpen(false)}>Contato</Link></li>
+            {customer?.is_admin && (
+              <li><Link to="/admin" style={{ color: 'var(--color-primary)', fontWeight: 'bold' }} onClick={() => setIsOpen(false)}>Painel Admin</Link></li>
+            )}
           </ul>
         </div>
       )}

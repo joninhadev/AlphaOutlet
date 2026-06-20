@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useCustomer } from '../context/CustomerContext';
 
 export default function Admin() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
+  const { customer } = useCustomer();
+  const navigate = useNavigate();
   
   // Data
   const [products, setProducts] = useState([]);
@@ -19,6 +21,13 @@ export default function Admin() {
   const [description, setDescription] = useState('');
   const [colors, setColors] = useState('');
   const [sizes, setSizes] = useState('');
+
+  // Redireciona caso não seja admin
+  useEffect(() => {
+    if (customer !== undefined && (!customer || !customer.is_admin)) {
+      navigate('/login');
+    }
+  }, [customer, navigate]);
 
   const fetchProducts = async () => {
     try {
@@ -37,25 +46,11 @@ export default function Admin() {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (customer?.is_admin) {
       fetchProducts();
       fetchOrders();
     }
-  }, [isAuthenticated]);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
-      });
-      const data = await res.json();
-      if (data.success) setIsAuthenticated(true);
-      else alert('Senha incorreta!');
-    } catch (e) { alert('Erro ao conectar ao servidor.'); }
-  };
+  }, [customer]);
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
@@ -109,21 +104,10 @@ export default function Admin() {
     } catch (e) { alert('Erro ao atualizar status'); }
   };
 
-  if (!isAuthenticated) {
+  if (!customer || !customer.is_admin) {
     return (
-      <div className="container" style={{ padding: '8rem 2rem', maxWidth: '500px' }}>
-        <div className="glass-panel" style={{ padding: '3rem', borderRadius: '12px', textAlign: 'center' }}>
-          <h2>Acesso Restrito</h2>
-          <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>Área de administração Alpha Outlet</p>
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <input 
-              type="password" placeholder="Senha de Admin" value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{ padding: '1rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', color: '#fff', borderRadius: '6px' }}
-            />
-            <button className="btn-primary" type="submit">Entrar no Painel</button>
-          </form>
-        </div>
+      <div className="container" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+        <p>Verificando credenciais...</p>
       </div>
     );
   }

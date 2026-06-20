@@ -68,9 +68,20 @@ async function initializeDB() {
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
         address TEXT,
+        is_admin BOOLEAN DEFAULT FALSE,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Atualização: Garantir que a coluna exista caso a tabela já estivesse criada
+    try {
+      await connection.execute("ALTER TABLE customers ADD COLUMN is_admin BOOLEAN DEFAULT FALSE");
+    } catch (e) {
+      // Ignora se a coluna já existir (ER_DUP_FIELDNAME)
+    }
+    
+    // Transforma o primeiro usuário e os e-mails oficiais em admin automaticamente
+    await connection.execute("UPDATE customers SET is_admin = TRUE WHERE id = 1 OR email IN ('joninhac10@gmail.com', 'erica16052006@gmail.com')");
 
     // Inserir dados iniciais se a tabela de produtos estiver vazia
     const [rows] = await connection.execute("SELECT COUNT(*) AS count FROM products");
