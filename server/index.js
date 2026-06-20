@@ -27,9 +27,9 @@ const PORT = 3001;
 app.get('/api/products', async (req, res) => {
   try {
     const [rows] = await pool.execute("SELECT * FROM products");
-    // Parse JSON
     const products = rows.map(r => ({
       ...r,
+      price: parseFloat(r.price),
       colors: typeof r.colors === 'string' ? JSON.parse(r.colors) : r.colors,
       sizes: typeof r.sizes === 'string' ? JSON.parse(r.sizes) : r.sizes
     }));
@@ -48,6 +48,7 @@ app.get('/api/products/:id', async (req, res) => {
     const row = rows[0];
     res.json({
       ...row,
+      price: parseFloat(row.price),
       colors: typeof row.colors === 'string' ? JSON.parse(row.colors) : row.colors,
       sizes: typeof row.sizes === 'string' ? JSON.parse(row.sizes) : row.sizes
     });
@@ -89,6 +90,7 @@ app.get('/api/orders', async (req, res) => {
     const [rows] = await pool.execute("SELECT * FROM orders ORDER BY created_at DESC");
     const orders = rows.map(r => ({
       ...r,
+      total: parseFloat(r.total),
       items: typeof r.items === 'string' ? JSON.parse(r.items) : r.items
     }));
     res.json(orders);
@@ -155,6 +157,7 @@ app.get('/api/customers/:id/orders', async (req, res) => {
     const [rows] = await pool.execute("SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC", [req.params.id]);
     const orders = rows.map(r => ({ 
       ...r, 
+      total: parseFloat(r.total),
       items: typeof r.items === 'string' ? JSON.parse(r.items) : r.items 
     }));
     res.json(orders);
