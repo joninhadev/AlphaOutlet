@@ -37,12 +37,19 @@ async function initializeDB() {
         name VARCHAR(255) NOT NULL,
         price DECIMAL(10,2) NOT NULL,
         category VARCHAR(100),
-        image TEXT,
+        image LONGTEXT,
         description TEXT,
         colors JSON,
         sizes JSON
       )
     `);
+
+    // Atualização: Garantir que a coluna image seja LONGTEXT caso já exista como TEXT
+    try {
+      await connection.execute("ALTER TABLE products MODIFY image LONGTEXT");
+    } catch (e) {
+      console.log("Aviso ao alterar coluna image:", e.message);
+    }
 
     // Tabela de Pedidos
     await connection.execute(`
