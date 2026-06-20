@@ -21,6 +21,7 @@ export default function Admin() {
   const [description, setDescription] = useState('');
   const [colors, setColors] = useState('');
   const [sizes, setSizes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redireciona caso não seja admin
   useEffect(() => {
@@ -54,6 +55,9 @@ export default function Admin() {
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return; // Proteção extra
+    setIsSubmitting(true);
+    
     const formData = new FormData();
     formData.append('name', name);
     formData.append('price', price);
@@ -81,6 +85,8 @@ export default function Admin() {
     } catch (e) { 
       console.error(e);
       alert('Erro ao salvar produto: ' + e.message); 
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -144,7 +150,9 @@ export default function Admin() {
               <textarea required placeholder="Descrição" value={description} onChange={e => setDescription(e.target.value)} className="admin-input" rows="3" />
               <input required type="text" placeholder="Cores (vírgula)" value={colors} onChange={e => setColors(e.target.value)} className="admin-input" />
               <input required type="text" placeholder="Tamanhos (vírgula)" value={sizes} onChange={e => setSizes(e.target.value)} className="admin-input" />
-              <button type="submit" className="btn-primary">Salvar Produto</button>
+              <button className="btn-primary" type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Salvando...' : 'Salvar Produto'}
+              </button>
             </form>
           </div>
 

@@ -63,8 +63,12 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
       imageUrl = `data:${mime};base64,${b64}`;
     }
     
-    const parsedColors = colors ? JSON.stringify(colors.split(',').map(c => c.trim())) : '[]';
-    const parsedSizes = sizes ? JSON.stringify(sizes.split(',').map(s => s.trim())) : '[]';
+    const parsedColors = colors ? JSON.stringify(colors.split(',').map(c => {
+      const trimmed = c.trim();
+      return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+    })) : '[]';
+    
+    const parsedSizes = sizes ? JSON.stringify(sizes.split(',').map(s => s.trim().toUpperCase())) : '[]';
 
     const [result] = await pool.execute(
       "INSERT INTO products (name, price, category, image, description, colors, sizes) VALUES (?, ?, ?, ?, ?, ?, ?)",
