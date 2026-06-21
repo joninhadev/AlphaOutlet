@@ -28,8 +28,10 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState('Pix');
   const [deliveryMethod, setDeliveryMethod] = useState('Entrega');
   
-  // Dados do PIX
+  // Dados do PIX e Pedido
   const [pixData, setPixData] = useState(null);
+  const [orderId, setOrderId] = useState(null);
+  const [pixPaid, setPixPaid] = useState(false);
 
   useEffect(() => {
     if (customer) {
@@ -83,6 +85,24 @@ export default function Checkout() {
     fetchCep();
   }, [addressObj.cep]);
 
+  // Polling para checar se o PIX foi pago
+  useEffect(() => {
+    let intervalId;
+    if (pixData?.payment_id && orderId && !pixPaid) {
+      intervalId = setInterval(async () => {
+        try {
+          const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/payments/pix/${pixData.payment_id}/status?orderId=${orderId}`);
+          const data = await res.json();
+          if (data.success && data.status === 'approved') {
+            setPixPaid(true);
+            clearInterval(intervalId);
+          }
+        } catch (e) { console.error('Erro no polling do pix', e); }
+      }, 3000); // Verifica a cada 3 segundos
+    }
+    return () => { if (intervalId) clearInterval(intervalId); };
+  }, [pixData, orderId, pixPaid]);
+
   const handleCheckout = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -116,11 +136,13 @@ export default function Checkout() {
 
     try {
       // 1. Criar o pedido
-      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/orders`, {
+      const orderRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)
       });
+      const orderDataResponse = await orderRes.json();
+      setOrderId(orderDataResponse.id);
 
       // 2. Se for PIX, gerar QR Code pelo Mercado Pago
       if (paymentMethod === 'Pix') {
@@ -159,6 +181,31 @@ export default function Checkout() {
   };
 
   if (success) {
+    if (pixPaid) {
+      return (
+        <div className="container animate-fade-in" style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '800px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ width: '120px', height: '120px', backgroundColor: '#4CAF50', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem', animation: 'scaleIn 0.5s ease-out' }}>
+            <svg style={{ width: '60px', height: '60px', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+          </div>
+          <h1 style={{ color: '#4CAF50', fontSize: '3rem', marginBottom: '1rem' }}>Pagamento Aprovado! 🎉</h1>
+          <p style={{ fontSize: '1.2rem', color: 'var(--color-text-main)', marginBottom: '2rem' }}>
+            Dinheiro na conta! Prepara o guarda-roupa, porque o seu pedido já está sendo separado!
+          </p>
+          <div className="glass-panel" style={{ padding: '2rem', borderRadius: '8px', marginBottom: '2rem', width: '100%' }}>
+            <p style={{ margin: 0 }}>Enviaremos as atualizações de rastreio para o seu e-mail: <strong>{customerEmail}</strong></p>
+          </div>
+          <Link to="/catalogo" className="btn-primary">Continuar Comprando</Link>
+          <style>{`
+            @keyframes scaleIn {
+              0% { transform: scale(0); opacity: 0; }
+              60% { transform: scale(1.1); }
+              100% { transform: scale(1); opacity: 1; }
+            }
+          `}</style>
+        </div>
+      );
+    }
+
     return (
       <div className="container animate-fade-in" style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '800px' }}>
         <h1 style={{ color: 'var(--color-primary)', fontSize: '3rem', marginBottom: '1rem' }}>Pedido Recebido!</h1>
@@ -175,7 +222,7 @@ export default function Checkout() {
         
         {paymentMethod === 'Pix' && pixData && (
           <div className="glass-panel" style={{ padding: '3rem', borderRadius: '8px', marginBottom: '2rem', textAlign: 'center', border: '1px solid var(--color-primary)' }}>
-            <h2 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)' }}>Pagamento via Pix</h2>
+            <h2 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)' }}>Aguardando Pagamento...</h2>
             <p style={{ marginBottom: '2rem', fontSize: '1.1rem' }}>Abra o app do seu banco e escaneie o QR Code abaixo:</p>
             
             <div style={{ backgroundColor: '#fff', padding: '1rem', display: 'inline-block', borderRadius: '12px', marginBottom: '2rem' }}>
@@ -194,6 +241,13 @@ export default function Checkout() {
                 <button onClick={copyPixCode} className="btn-primary" style={{ padding: '1rem 2rem' }}>Copiar</button>
               </div>
             </div>
+            <div style={{ marginTop: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--color-text-muted)' }}>
+              <div style={{ width: '16px', height: '16px', border: '2px solid var(--color-primary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+              <span style={{ fontSize: '0.9rem' }}>Aguardando confirmação automática do banco... A tela atualizará sozinha.</span>
+            </div>
+            <style>{`
+              @keyframes spin { 100% { transform: rotate(360deg); } }
+            `}</style>
           </div>
         )}
 

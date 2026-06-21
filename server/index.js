@@ -289,6 +289,29 @@ app.post('/api/payments/pix', async (req, res) => {
   }
 });
 
+// Consultar Status do PIX e Aprovar Pedido
+app.get('/api/payments/pix/:id/status', async (req, res) => {
+  try {
+    const paymentId = req.params.id;
+    const orderId = req.query.orderId;
+    
+    const payment = new Payment(client);
+    const mpResult = await payment.get({ id: paymentId });
+    
+    const status = mpResult.status; // 'pending', 'approved', 'rejected'
+    
+    if (status === 'approved' && orderId) {
+      // Atualiza o pedido para "Aprovado" automaticamente
+      await pool.execute("UPDATE orders SET status = 'Aprovado' WHERE id = ?", [orderId]);
+    }
+    
+    res.json({ success: true, status });
+  } catch (error) {
+    console.error("Erro ao consultar status MP:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
