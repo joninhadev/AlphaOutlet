@@ -3,6 +3,10 @@ const cors = require('cors');
 const pool = require('./db');
 const multer = require('multer');
 const path = require('path');
+const { MercadoPagoConfig, Payment } = require('mercadopago');
+
+// Configuração do Mercado Pago
+const client = new MercadoPagoConfig({ accessToken: 'APP_USR-5236637594798859-061516-fe6df234d3007bd8a1e8fcf24040ce10-259913635', options: { timeout: 5000 } });
 
 const app = express();
 app.use(cors());
@@ -211,6 +215,16 @@ app.post('/api/customers/login', async (req, res) => {
   }
 });
 
+app.put('/api/customers/:id', async (req, res) => {
+  try {
+    const { address } = req.body;
+    const [result] = await pool.execute("UPDATE customers SET address = ? WHERE id = ?", [address, req.params.id]);
+    res.json({ success: true, message: "Endereço atualizado com sucesso" });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.get('/api/customers/:id/orders', async (req, res) => {
   try {
     const [rows] = await pool.execute("SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC", [req.params.id]);
@@ -242,6 +256,36 @@ app.get('/api/health', async (req, res) => {
     res.status(200).json({ status: 'OK', database: 'connected' });
   } catch (error) {
     res.status(500).json({ status: 'ERROR', database: 'disconnected', details: error.message });
+  }
+});
+
+// Rota Mercado Pago PIX
+app.post('/api/payments/pix', async (req, res) => {
+  try {
+    const { transaction_amount, description, email, first_name } = req.body;
+
+    const payment = new Payment(client);
+    const result = await payment.create({
+      body: {
+        transaction_amount: Number(transaction_amount),
+        description: description || "Compra na Alpha Outlet",
+        payment_method_id: 'pix',
+        payer: {
+          email: email || "cliente@alphaoutlet.com",
+          first_name: first_name || "Cliente"
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      qr_code: result.point_of_interaction.transaction_data.qr_code,
+      qr_code_base64: result.point_of_interaction.transaction_data.qr_code_base64,
+      payment_id: result.id
+    });
+  } catch (error) {
+    console.error("Erro no MercadoPago:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
