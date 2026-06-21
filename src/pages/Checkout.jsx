@@ -256,6 +256,14 @@ export default function Checkout() {
           </div>
         )}
 
+        {paymentMethod === 'Pix' && !pixData && (
+          <div className="glass-panel" style={{ padding: '2rem', borderRadius: '8px', marginBottom: '2rem', textAlign: 'center', border: '1px solid var(--color-secondary)' }}>
+            <h3 style={{ marginBottom: '1rem', color: 'var(--color-secondary)' }}>⚠️ PIX Temporariamente Indisponível</h3>
+            <p>Seu pedido foi registrado com sucesso! Porém não foi possível gerar o QR Code automaticamente no momento.</p>
+            <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>Entraremos em contato pelo e-mail <strong>{customerEmail}</strong> com as instruções de pagamento.</p>
+          </div>
+        )}
+
         {paymentMethod === 'Dinheiro' && (
           <div className="glass-panel" style={{ padding: '2rem', borderRadius: '8px', marginBottom: '2rem' }}>
             <h3 style={{ marginBottom: '1rem' }}>Pagamento em Dinheiro</h3>
