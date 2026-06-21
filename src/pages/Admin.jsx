@@ -135,6 +135,24 @@ export default function Admin() {
     } catch (e) { alert('Erro ao atualizar status'); }
   };
 
+  const handleDeleteOrder = async (id) => {
+    if (window.confirm('Tem certeza que deseja excluir este pedido?')) {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/orders/${id}`, { method: 'DELETE' });
+        fetchOrders();
+      } catch (e) { alert('Erro ao excluir pedido'); }
+    }
+  };
+
+  const handleDeleteAllOrders = async () => {
+    if (window.confirm('Excluir TODOS os pedidos? Esta ação não pode ser desfeita.')) {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/orders`, { method: 'DELETE' });
+        fetchOrders();
+      } catch (e) { alert('Erro ao excluir pedidos'); }
+    }
+  };
+
   if (!customer || !customer.is_admin) {
     return (
       <div className="container" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
@@ -218,7 +236,14 @@ export default function Admin() {
 
       {activeTab === 'orders' && (
         <div>
-          <h3 style={{ marginBottom: '1.5rem' }}>Pedidos Recentes</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h3>Pedidos Recentes</h3>
+            {orders.length > 0 && (
+              <button onClick={handleDeleteAllOrders} style={{ padding: '0.5rem 1rem', backgroundColor: 'rgba(255, 50, 50, 0.15)', color: '#ff6b6b', border: '1px solid #ff6b6b', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
+                Excluir Todos
+              </button>
+            )}
+          </div>
           {orders.length === 0 ? (
             <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', borderRadius: '8px' }}>
               <p style={{ color: 'var(--color-text-muted)' }}>Nenhum pedido recebido ainda.</p>
@@ -227,25 +252,27 @@ export default function Admin() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {orders.map(order => (
                 <div key={order.id} className="glass-panel" style={{ padding: '1.5rem', borderRadius: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem', marginBottom: '1rem', alignItems: 'center' }}>
                     <div>
                       <h4 style={{ margin: '0 0 0.5rem 0' }}>Pedido #{order.id}</h4>
-                      <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                      <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
                         {new Date(order.created_at).toLocaleString('pt-BR')}
                       </p>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                       <select 
                         value={order.status}
                         onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
                         style={{ 
                           padding: '0.5rem', 
                           borderRadius: '4px', 
-                          backgroundColor: order.status === 'Entregue' ? '#2e7d32' : order.status === 'Enviado' ? '#0277bd' : 'var(--color-surface)',
+                          backgroundColor: order.status === 'Entregue' ? '#2e7d32' : order.status === 'Enviado' ? '#0277bd' : order.status === 'Aprovado' ? '#1b5e20' : 'var(--color-surface)',
                           color: '#fff',
                           border: '1px solid var(--color-border)',
                           outline: 'none',
-                          fontWeight: 'bold',
+                          fontWeight: 600,
+                          fontFamily: 'var(--font-sans)',
+                          fontSize: '0.85rem',
                           cursor: 'pointer'
                         }}
                       >
@@ -254,38 +281,41 @@ export default function Admin() {
                         <option value="Enviado">Enviado</option>
                         <option value="Entregue">Entregue</option>
                       </select>
+                      <button onClick={() => handleDeleteOrder(order.id)} style={{ padding: '0.5rem 0.75rem', backgroundColor: 'rgba(255, 50, 50, 0.15)', color: '#ff6b6b', border: '1px solid #ff6b6b', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
+                        Excluir
+                      </button>
                     </div>
                   </div>
 
                   <div className="grid-responsive grid-responsive-2">
                     <div>
-                      <h5 style={{ color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Cliente</h5>
+                      <h5 style={{ color: 'var(--color-primary)', marginBottom: '0.5rem', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cliente</h5>
                       <p style={{ margin: 0 }}><strong>{order.customer_name}</strong></p>
-                      <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>{order.customer_email}</p>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>{order.customer_email}</p>
                       {order.customer_address === 'Retirada na Loja' ? (
-                        <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: '#ffb300', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          📍 Retirada na Loja
+                        <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: '#ffb300', fontWeight: 600 }}>
+                          Retirada na Loja
                         </p>
                       ) : (
-                        <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem' }}>🚚 {order.customer_address}</p>
+                        <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem' }}>{order.customer_address}</p>
                       )}
                       
-                      <h5 style={{ color: 'var(--color-primary)', margin: '1rem 0 0.5rem 0' }}>Pagamento</h5>
+                      <h5 style={{ color: 'var(--color-primary)', margin: '1rem 0 0.5rem 0', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pagamento</h5>
                       <p style={{ margin: 0, fontWeight: 600 }}>{order.payment_method}</p>
                     </div>
 
                     <div>
-                      <h5 style={{ color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Itens</h5>
+                      <h5 style={{ color: 'var(--color-primary)', marginBottom: '0.5rem', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Itens</h5>
                       <div style={{ backgroundColor: 'var(--color-bg)', padding: '1rem', borderRadius: '4px' }}>
                         {order.items.map((item, idx) => (
                           <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: idx !== order.items.length - 1 ? '0.5rem' : 0 }}>
-                            <span style={{ fontSize: '0.9rem' }}>{item.quantity}x {item.product.name} ({item.color}, {item.size})</span>
-                            <span style={{ fontSize: '0.9rem' }}>R$ {(item.product.price * item.quantity).toFixed(2)}</span>
+                            <span style={{ fontSize: '0.85rem' }}>{item.quantity}x {item.product.name} ({item.color}, {item.size})</span>
+                            <span style={{ fontSize: '0.85rem' }}>R$ {(item.product.price * item.quantity).toFixed(2)}</span>
                           </div>
                         ))}
                         <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
                           <span>TOTAL</span>
-                          <span style={{ color: 'var(--color-primary)', fontSize: '1.2rem' }}>R$ {order.total.toFixed(2)}</span>
+                          <span style={{ color: 'var(--color-primary)', fontSize: '1.1rem' }}>R$ {order.total.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>

@@ -190,6 +190,24 @@ app.put('/api/orders/:id/status', async (req, res) => {
   }
 });
 
+app.delete('/api/orders/:id', async (req, res) => {
+  try {
+    const [result] = await pool.execute("DELETE FROM orders WHERE id = ?", [req.params.id]);
+    res.json({ message: "Pedido excluído", affectedRows: result.affectedRows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/orders', async (req, res) => {
+  try {
+    await pool.execute("DELETE FROM orders");
+    res.json({ message: "Todos os pedidos foram excluídos" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Rotas de Clientes (Auth & Perfil)
 app.post('/api/customers/register', async (req, res) => {
   try {

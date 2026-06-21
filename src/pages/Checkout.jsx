@@ -192,9 +192,9 @@ export default function Checkout() {
           <div style={{ width: '120px', height: '120px', backgroundColor: '#4CAF50', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem', animation: 'scaleIn 0.5s ease-out' }}>
             <svg style={{ width: '60px', height: '60px', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
           </div>
-          <h1 style={{ color: '#4CAF50', fontSize: '3rem', marginBottom: '1rem' }}>Pagamento Aprovado! 🎉</h1>
+          <h1 style={{ color: '#4CAF50', fontSize: '2.5rem', marginBottom: '1rem' }}>Pagamento Aprovado</h1>
           <p style={{ fontSize: '1.2rem', color: 'var(--color-text-main)', marginBottom: '2rem' }}>
-            Dinheiro na conta! Prepara o guarda-roupa, porque o seu pedido já está sendo separado!
+            Seu pagamento foi confirmado com sucesso. Seu pedido já está sendo separado.
           </p>
           <div className="glass-panel" style={{ padding: '2rem', borderRadius: '8px', marginBottom: '2rem', width: '100%' }}>
             <p style={{ margin: 0 }}>Enviaremos as atualizações de rastreio para o seu e-mail: <strong>{customerEmail}</strong></p>
@@ -220,7 +220,7 @@ export default function Checkout() {
 
         {deliveryMethod === 'Retirada' && (
           <div className="glass-panel" style={{ padding: '2rem', borderRadius: '8px', marginBottom: '2rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--color-primary)' }}>
-            <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>📍 Pedido para Retirada</h3>
+            <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>Pedido para Retirada</h3>
             <p>Seu pedido está sendo separado. Avisaremos por e-mail assim que estiver pronto para ser retirado na nossa loja física.</p>
           </div>
         )}
@@ -258,7 +258,7 @@ export default function Checkout() {
 
         {paymentMethod === 'Pix' && !pixData && (
           <div className="glass-panel" style={{ padding: '2rem', borderRadius: '8px', marginBottom: '2rem', textAlign: 'center', border: '1px solid var(--color-secondary)' }}>
-            <h3 style={{ marginBottom: '1rem', color: 'var(--color-secondary)' }}>⚠️ PIX Temporariamente Indisponível</h3>
+            <h3 style={{ marginBottom: '1rem', color: 'var(--color-secondary)' }}>PIX Temporariamente Indisponível</h3>
             <p>Seu pedido foi registrado com sucesso! Porém não foi possível gerar o QR Code automaticamente no momento.</p>
             <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>Entraremos em contato pelo e-mail <strong>{customerEmail}</strong> com as instruções de pagamento.</p>
           </div>
@@ -367,7 +367,7 @@ export default function Checkout() {
             
             {deliveryMethod === 'Retirada' && (
               <div style={{ padding: '1.5rem', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '8px', color: 'var(--color-text-muted)' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#fff' }}>📍 Retirada Presencial na Loja</h4>
+                <h4 style={{ margin: '0 0 0.5rem 0', color: '#fff' }}>Retirada Presencial na Loja</h4>
                 <p style={{ margin: 0 }}>Você não pagará frete. O endereço completo da loja será exibido no comprovante do pedido após o pagamento.</p>
               </div>
             )}
