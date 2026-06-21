@@ -38,7 +38,26 @@ export default function Account() {
 
       <div className="glass-panel" style={{ padding: '2rem', borderRadius: '8px', marginBottom: '3rem' }}>
         <h3 style={{ marginBottom: '1rem' }}>Endereço Padrão</h3>
-        <p style={{ color: 'var(--color-text-muted)' }}>{customer.address}</p>
+        <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.5' }}>
+          {(() => {
+            if (!customer.address) return 'Nenhum endereço salvo.';
+            try {
+              const parsed = JSON.parse(customer.address);
+              if (parsed.rua) {
+                return (
+                  <>
+                    <strong style={{ color: '#fff' }}>{parsed.rua}, {parsed.numero} {parsed.complemento && `(${parsed.complemento})`}</strong><br/>
+                    {parsed.bairro} - {parsed.cidade} / {parsed.estado}<br/>
+                    CEP: {parsed.cep}
+                  </>
+                );
+              }
+              return customer.address;
+            } catch (e) {
+              return customer.address;
+            }
+          })()}
+        </p>
       </div>
 
       <h2 style={{ marginBottom: '1.5rem' }}>Meus Pedidos</h2>
