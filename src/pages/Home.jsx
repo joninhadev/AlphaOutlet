@@ -28,17 +28,17 @@ export default function Home() {
         height: '80vh', 
         display: 'flex', 
         alignItems: 'center',
-        backgroundImage: 'linear-gradient(to right, rgba(13,13,13,0.9), rgba(13,13,13,0.3)), url(https://images.unsplash.com/photo-1516257984-b1b4d707412e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80)',
+        backgroundImage: 'linear-gradient(to right, rgba(13,13,13,0.92), rgba(13,13,13,0.4)), url(https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'
       }}>
         <div className="container animate-fade-in">
           <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', marginBottom: '1rem', maxWidth: '600px' }}>
-            Estilo, <br/>Atitude & Confiança.
+            Vista o que<br/>te representa.
           </h1>
-          <p style={{ fontSize: '1.2rem', color: 'var(--color-text-muted)', marginBottom: '2rem', maxWidth: '500px' }}>
-            Descubra a nova coleção da Alpha Outlet. Peças desenhadas para quem valoriza a durabilidade e o design singular.
+          <p style={{ fontSize: '1.1rem', color: 'var(--color-text-muted)', marginBottom: '2rem', maxWidth: '500px' }}>
+            Multi marcas, preço justo e estilo pra todo dia. A Alpha Outlet é pra quem vive moda de verdade.
           </p>
           <Link to="/catalogo" className="btn-primary" style={{ display: 'inline-flex', padding: '1rem 2rem', fontSize: '1.1rem' }}>
             Ver Coleção <ArrowRight size={20} />
@@ -70,16 +70,16 @@ export default function Home() {
         <div className="container">
           <div className="glass-panel grid-responsive grid-responsive-2" style={{ borderRadius: '12px', overflow: 'hidden', gap: 0 }}>
             <div style={{ padding: '4rem 3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Coleção Couro Premium</h2>
+              <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Novidades Toda Semana</h2>
               <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                Conheça nossa linha de jaquetas de couro autêntico, tratadas artesanalmente para um visual único que melhora com o tempo.
+                Peças das melhores marcas chegando o tempo todo. Camisetas, calças, tênis e acessórios com preço que cabe no bolso.
               </p>
               <Link to="/catalogo" className="btn-secondary" style={{ alignSelf: 'flex-start' }}>
-                Explorar Linha
+                Conferir Lançamentos
               </Link>
             </div>
             <div style={{ height: '100%', minHeight: '300px' }}>
-              <img src="https://images.unsplash.com/photo-1489987707023-af66f1e8e4db?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Coleção Couro" style={{ width: '100%', height: '100%', minHeight: '300px', objectFit: 'cover' }} />
+              <img src="https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Novidades" style={{ width: '100%', height: '100%', minHeight: '300px', objectFit: 'cover' }} />
             </div>
           </div>
         </div>
