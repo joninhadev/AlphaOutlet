@@ -141,32 +141,37 @@ export default function Checkout() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)
       });
+      if (!orderRes.ok) throw new Error('Falha ao registrar pedido');
       const orderDataResponse = await orderRes.json();
       setOrderId(orderDataResponse.id);
 
-      // 2. Se for PIX, gerar QR Code pelo Mercado Pago
+      // 2. Se for PIX, gerar QR Code pelo Mercado Pago (separado para não bloquear o pedido)
       if (paymentMethod === 'Pix') {
-        const pixRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/payments/pix`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            transaction_amount: total,
-            description: `Compra na Alpha Outlet - Cliente: ${customerName}`,
-            email: customerEmail,
-            first_name: customerName.split(' ')[0]
-          })
-        });
-        const pixResult = await pixRes.json();
-        if (pixResult.success) {
-          setPixData(pixResult);
-        } else {
-          alert('Aviso: Falha ao gerar o código PIX automático. Entre em contato conosco.');
+        try {
+          const pixRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/payments/pix`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              transaction_amount: total,
+              description: `Compra na Alpha Outlet - Pedido #${orderDataResponse.id}`,
+              email: customerEmail,
+              first_name: customerName.split(' ')[0]
+            })
+          });
+          const pixResult = await pixRes.json();
+          if (pixResult.success) {
+            setPixData(pixResult);
+          }
+        } catch (pixErr) {
+          console.error('Falha ao gerar PIX:', pixErr);
+          // O pedido já foi criado, apenas o PIX falhou. Mostramos a tela de sucesso sem QR Code.
         }
       }
 
       setSuccess(true);
       clearCart();
     } catch (e) {
+      console.error('Erro no checkout:', e);
       alert('Erro ao processar pedido. Tente novamente.');
     } finally {
       setLoading(false);
